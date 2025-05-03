@@ -70,7 +70,7 @@ for index, row in csv_data.iterrows():
     # Préparer le dossier de sortie pour cette commune
     numero_departement = row['Code postal'][:2]
     ville_upper = row['Ville'].upper()
-    model_copy_dir = os.path.join(BASE_DIR, f"{numero_departement} {ville_upper}")
+    model_copy_dir = os.path.join(BASE_DIR, "dossiers_generes", f"{numero_departement} {ville_upper}")
     # Ne copier le modèle qu'une seule fois par commune
     if current_dir != model_copy_dir:
         if os.path.exists(model_copy_dir):
@@ -203,7 +203,7 @@ generated_communes = set((row['Code postal'][:2], row['Ville']) for _, row in cs
 for dep_code, ville in generated_communes:
     # Regrouper les lignes pour cette commune
     rows = [row for _, row in csv_data.iterrows() if (row['Code postal'][:2], row['Ville']) == (dep_code, ville)]
-    courriers_dir = os.path.join(BASE_DIR, f"{dep_code} {ville.upper()}", '03 Courriers')
+    courriers_dir = os.path.join(BASE_DIR, "dossiers_generes", f"{dep_code} {ville.upper()}", '03 Courriers')
     if not os.path.exists(courriers_dir):
         os.makedirs(courriers_dir)
     generate_courrier(rows, utils_dir, courriers_dir)
