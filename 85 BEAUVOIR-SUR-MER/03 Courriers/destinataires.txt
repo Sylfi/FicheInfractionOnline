@@ -1,0 +1,2 @@
+Société	Civilité	Prénom	Nom	Batiment	Libellé voie	Code postal	Ville	Pays
+Monsieur Jean-Yves BILLON	Maire de Beauvoir-sur-Mer	Maire de Beauvoir-sur-Mer	Maire de Beauvoir-sur-Mer	Hôtel de Ville	Place de l'Hôtel-de-Ville	85230 Beauvoir-sur-Mer		France
