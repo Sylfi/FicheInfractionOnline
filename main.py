@@ -49,8 +49,13 @@ if not os.path.exists(input_dir):
 
  # Charger les données CSV
 csv_file = os.path.join(utils_dir, 'document.csv')
-csv_data = pd.read_csv(csv_file, on_bad_lines='skip')
+csv_data = pd.read_csv(
+    csv_file,
+    dtype={'Code postal': str},   # Conserver les zéros en tête
+    on_bad_lines='skip'
+)
 csv_data = csv_data.fillna('').infer_objects(copy=False)
+csv_data['Code postal'] = csv_data['Code postal'].str.zfill(5)
 csv_data = csv_data.applymap(str)
 
 # Diviser la chaîne de caractères pour les images
@@ -58,7 +63,12 @@ csv_data['Images'] = csv_data['Images'].str.split('|').str[0]
 
 # Charger le mapping des départements
 departments_csv_path = os.path.join(utils_dir, 'departements-region.csv')
-departments_data = pd.read_csv(departments_csv_path)
+# On lit num_dep comme chaîne et on garantit 2 caractères (ex. "01", "02", ...)
+departments_data = pd.read_csv(
+    departments_csv_path,
+    dtype={'num_dep': str}    # Conserver les zéros en tête
+)
+departments_data['num_dep'] = departments_data['num_dep'].str.zfill(2)
 department_mapping = departments_data.set_index('num_dep')['dep_name'].to_dict()
 
 docx_files = []
@@ -92,6 +102,9 @@ for index, row in csv_data.iterrows():
     else:
         infraction_text = infraction_rlpi
         role_label = ""
+
+    if row.get('afficheur_non_visible_1', '').strip().lower() == 'on':
+        role_label = "non visible"
 
     # Traitement de la catégorie
     categorie_text = row['Catégories (libellés)']
