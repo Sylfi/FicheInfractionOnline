@@ -158,7 +158,8 @@ def generate_courrier(fiches: list[dict], utils_dir: str, courriers_dir: str):
     lettre_doc.render(context)
 
     # Sauvegarde de la lettre
-    lettre_path = os.path.join(courriers_dir, f"Lettre_Infractions_{ville}.docx")
+    date_iso = datetime.now().strftime("%Y-%m-%d")
+    lettre_path = os.path.join(courriers_dir, f"{date_iso}-demande initiale.docx")
     lettre_doc.save(lettre_path)
     logging.info(f"Courrier généré : {lettre_path}")
 
