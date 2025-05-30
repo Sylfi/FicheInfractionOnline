@@ -1,0 +1,22 @@
+﻿
+Fiche d’infraction au code de l’environnement
+N° {{ code_fiche }}
+
+
+{{ nom_commune }}
+{{department_name}}  ({{ code_postal[:2] }})
+Date : {{ date_today }}
+
+{{ my_image  }}
+
+Localisation
+{{ localisation }}
+Coordonnées GPS
+{{ gps }}
+Identification du dispositif
+{{ type_dispositif }}
+{{ annonceurafficheur }}
+{{ annonceur }}{{ afficheur }}
+
+Infraction : {{ type_infraction }}
+

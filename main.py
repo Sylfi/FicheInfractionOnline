@@ -9,7 +9,47 @@ import shutil
 import pandas as pd
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
-from typing import Optional
+
+# --- Colored Logging Setup ---
+class ColoredFormatter(logging.Formatter):
+    RED = "\033[31m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    GREY = "\033[90m"
+    GREEN = "\033[32m"
+    RESET = "\033[0m"
+
+    def format(self, record):
+        if record.levelno == logging.ERROR:
+            color = self.RED
+        elif record.levelno == logging.WARNING:
+            color = self.YELLOW
+        elif record.levelno == logging.INFO:
+            color = self.BLUE
+        elif record.levelno == logging.DEBUG:
+            color = self.GREY
+        elif record.levelno == 25:  # SUCCESS
+            color = self.GREEN
+        else:
+            color = self.RESET
+        record.msg = f"{color}{record.msg}{self.RESET}"
+        return super().format(record)
+
+SUCCESS_LEVEL = 25
+logging.addLevelName(SUCCESS_LEVEL, "SUCCESS")
+
+def success(self, message, *args, **kwargs):
+    if logging.getLogger().isEnabledFor(SUCCESS_LEVEL):
+        logging.getLogger()._log(SUCCESS_LEVEL, message, args, **kwargs)
+
+logging.Logger.success = success
+
+handler = logging.StreamHandler()
+handler.setFormatter(ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s'))
+logging.getLogger().handlers = [handler]
+logging.getLogger().setLevel(logging.DEBUG)
+
+
 
 
 from utils.courrier_infractions import generate_courrier
@@ -17,8 +57,6 @@ from utils.courrier_infractions import generate_courrier
 from utils.commune import fetch_commune_code
 from utils.html_utils import process_html_content
 
-# Configuration de logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Définir la locale
 locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
@@ -64,6 +102,7 @@ csv_data['Code postal'] = csv_data['Code postal'].str.zfill(5)
 
 # Diviser la chaîne de caractères pour les images
 csv_data['Images'] = csv_data['Images'].str.split('|').str[0]
+
 
 # Charger le mapping des départements
 departments_csv_path = os.path.join(utils_dir, 'departements-region.csv')
@@ -126,10 +165,7 @@ for index, row in csv_data.iterrows():
         numero_rue_brut = str(row.get('Numéro', '')).strip()
 
         # Partie entière de la latitude (ex. 44 pour 44,14114)
-        try:
-            lat_int = str(int(float(row.get('Latitude', 0))))
-        except Exception:
-            lat_int = None
+        lat_int = row.get('Latitude', '').split('.')[0] if '.' in row.get('Latitude', '') else None
 
         rue_lower = row['Rue'].lower().strip()
 
@@ -164,29 +200,42 @@ for index, row in csv_data.iterrows():
         # Vérifier si l'image par défaut existe, sinon, créer un carré blanc
         if not os.path.exists(default_image_path):
             from PIL import Image
-
             default_img = Image.new('RGB', (500, 500), color='white')
+            os.makedirs(os.path.dirname(default_image_path), exist_ok=True)
             default_img.save(default_image_path)
 
         numero_departement = row['Code postal'][:2]
         department_name = department_mapping.get(numero_departement, 'Département Inconnu')
         afficheur, annonceur = (row['afficheur'].split(' - ') + [''])[:2]
 
+        # Truncate Latitude and Longitude to 5 decimal places for context
+        try:
+            lat_short = f"{float(row['Latitude']):.5f}"
+        except (ValueError, TypeError):
+            lat_short = row['Latitude']
+        try:
+            lon_short = f"{float(row['Longitude']):.5f}"
+        except (ValueError, TypeError):
+            lon_short = row['Longitude']
+
         doc_template_path = os.path.join(utils_dir, 'fichev1.docx')
         doc = DocxTemplate(doc_template_path)
         context = {
+            'Latitude': lat_short,
+            'Longitude': lon_short,
+            'gps': f"{lat_short}, {lon_short}",
             'my_image': InlineImage(doc, image_path, width=Mm(120)),
             'numero_de_rue': numero_rue,
             'rue': row['Rue'],
             'localisation': f"{numero_rue} {row['Rue']}".strip() if numero_rue else row['Rue'],
             'numero_de_fiche': row['Nom'],
             'code_fiche': row['Nom'],
-            'nom_commune': row['Ville'],
+            # Préfixe de test pour vérifier la prise en compte des modifications
+            'nom_commune': f"X{row['Ville']}",
             'code_postal': row['Code postal'],
             'department_name': department_name,
             'numero_departement': numero_departement,
             'date_today': date_today,
-            'gps': f"{float(row['Latitude']):.5f}, {float(row['Longitude']):.5f}",
             'afficheur': afficheur.strip(),
             'annonceur': annonceur.strip(),
             'type_dispositif': categorie_clean,
@@ -195,7 +244,13 @@ for index, row in csv_data.iterrows():
             'annonceurafficheur': role_label,
         }
 
-        doc.render(context)
+        try:
+            doc.render(context)
+        except Exception as e:
+            logging.warning(f"Erreur de rendu avec données manquantes pour {row['Nom']} (index {index}): {e}")
+            # Remplacer les valeurs non-string ou None par chaînes vides
+            safe_context = {k: (v if isinstance(v, str) else str(v) if v is not None else '') for k, v in context.items()}
+            doc.render(safe_context)
         # Ajout du texte des infractions avec le formatage correct et la police Arial
         infraction_paragraph = doc.add_paragraph()
         if infraction_text:
