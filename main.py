@@ -211,21 +211,28 @@ def generate_fiches(csv_data, paths, department_mapping, date_today):
             infractions_dir = os.path.join(model_copy_dir, '02 Infractions')
             photos_dir = os.path.join(model_copy_dir, '01 Photos')
 
-            # Determine which infraction text and role label to use based on available data
+            # Combine available infraction texts, and determine the role label
             infraction_publicite = row.get('infraction_publicite')
             infraction_enseigne = row.get('infraction_enseigne')
             infraction_rlpi = row.get('infraction_rlpi')
+            infraction_parts = []
             if infraction_publicite:
-                infraction_text = infraction_publicite
+                infraction_parts.append(infraction_publicite)
                 role_label = "Afficheur ou bénéficiaire"
-            elif infraction_enseigne:
-                infraction_text = infraction_enseigne
+            if infraction_enseigne:
+                infraction_parts.append(infraction_enseigne)
                 role_label = "Annonceur"
-                # If infraction_enseigne is used, assign afficheur from annonceur field if available
                 row['afficheur'] = row.get('annonceur', '')
+            if infraction_rlpi:
+                infraction_parts.append(infraction_rlpi)
+                # Only set role_label if not already set
+                if not infraction_publicite and not infraction_enseigne:
+                    role_label = "Afficheur ou bénéficiaire"
+            if infraction_parts:
+                infraction_text = "\n\n".join(infraction_parts)
             else:
-                infraction_text = infraction_rlpi
-                role_label = ""
+                logging.warning(f"Aucune infraction trouvée pour la ligne {index}, passage à la suivante.")
+                continue
 
             # If 'afficheur_non_visible' flag is set to 'on', override role label
             if row.get('afficheur_non_visible', '').strip().lower() == 'on':
