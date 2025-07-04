@@ -98,28 +98,27 @@ def init_paths(base_dir):
     paths['BASE_DIR'] = base_dir
     paths['template_dir'] = os.path.join(base_dir, 'utils', 'dossier_modele')
     paths['utils_dir'] = os.path.join(base_dir, 'utils')
-    paths['input_dir'] = os.path.join(base_dir, 'documents')
-
-    # Create the input directory if it does not exist to avoid errors later
-    if not os.path.exists(paths['input_dir']):
-        os.makedirs(paths['input_dir'])
+    paths['import_csv_dir'] = os.path.join(base_dir, 'import_csv')
+    # Create the import_csv directory if it does not exist
+    if not os.path.exists(paths['import_csv_dir']):
+        os.makedirs(paths['import_csv_dir'])
 
     return paths
 
 # Nouvelle fonction pour charger les données CSV
-def load_csv_dataset(utils_dir):
+def load_csv_dataset(import_csv_dir):
     """
-    Load and concatenate all CSV files found in the 'csv' subdirectory of utils_dir.
+    Load and concatenate all CSV files found in the import_csv_dir directory.
     Cleans and processes certain columns for consistency.
     
     Parameters:
-        utils_dir (str): Path to the utils directory containing CSV files.
+        import_csv_dir (str): Path to the import_csv directory containing CSV files.
         
     Returns:
         pd.DataFrame: Combined dataframe of all CSV data.
     """
     import glob
-    csv_dir = os.path.join(utils_dir, 'csv')
+    csv_dir = import_csv_dir
     all_csv_paths = glob.glob(os.path.join(csv_dir, '*.csv'))
     # Read all CSV files as strings, skipping bad lines and avoiding NA interpretation
     csv_data = pd.concat([
@@ -224,7 +223,7 @@ def generate_fiches(csv_data, paths, department_mapping, date_today):
                 role_label = "Annonceur"
                 row['afficheur'] = row.get('annonceur', '')
             if infraction_rlpi:
-                infraction_parts.append(infraction_rlpi)
+                infraction_parts.append(f"infraction au RLPi :\n{infraction_rlpi}")
                 # Only set role_label if not already set
                 if not infraction_publicite and not infraction_enseigne:
                     role_label = "Afficheur ou bénéficiaire"
@@ -456,10 +455,9 @@ def main():
     BASE_DIR = paths['BASE_DIR']
     template_dir = paths['template_dir']
     utils_dir = paths['utils_dir']
-    input_dir = paths['input_dir']
 
     # Charger les données CSV
-    csv_data = load_csv_dataset(utils_dir)
+    csv_data = load_csv_dataset(paths['import_csv_dir'])
 
     # Charger le mapping des départements
     department_mapping = load_department_mapping(utils_dir)
