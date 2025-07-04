@@ -415,6 +415,7 @@ def merge_docx_per_commune(docx_files_by_folder):
     """
     from utils.merge_docx import merge_docx_files
     for folder, files in docx_files_by_folder.items():
+        files.sort()
         if files:
             # Determine base name for combined file by stripping suffix after last hyphen
             base_name = os.path.basename(files[0]).rsplit('-', 1)[0] + ".docx"
