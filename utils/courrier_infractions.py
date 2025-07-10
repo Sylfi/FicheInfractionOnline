@@ -14,13 +14,10 @@ import requests
 import logging
 from pathlib import Path
 from docxtpl import DocxTemplate
-import locale
 from datetime import datetime
 from typing import Optional
 
 
-# Réglage de la locale pour les dates
-locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
 
 # URLs des API publiques
 GEO_URL = "https://geo.api.gouv.fr/communes"
@@ -140,7 +137,7 @@ def generate_courrier(fiches: list[dict], utils_dir: str, courriers_dir: str):
     lettre_doc = DocxTemplate(letter_template)
 
     # Contexte pour la lettre
-    date_str = datetime.now().strftime("%d %B %Y")
+    date_str = datetime.now().strftime("%d/%m/%Y")
     context = {
         "date_today": date_str,
         "pronom_maire": "Madame" if sexe_code == "F" else "Monsieur",
