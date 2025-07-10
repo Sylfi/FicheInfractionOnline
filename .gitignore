@@ -1,3 +1,9 @@
-/ 
-/dossiers_generes/
-/import_csv/
+# Ignore les dossiers générés automatiquement
+dossiers_generes/
+import_csv/
+__pycache__/
+*.pyc
+
+# Ignore aussi ton environnement virtuel si tu le mets dans le projet
+venv/
+venv-globalsymini/
