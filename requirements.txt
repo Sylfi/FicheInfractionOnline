@@ -2,6 +2,10 @@ flask
 pandas
 docxtpl
 python-docx
+docxcompose
 requests
 pillow
 gunicorn
+beautifulsoup4
+lxml
+openpyxl
