@@ -332,7 +332,7 @@ def generate_fiches(csv_data, paths, department_mapping, date_today):
                 'préenseignes': preenseigne_text,
                 'annonceurafficheur': role_label,
                 # Include surface estimate text only if surface is non-empty after stripping whitespace
-                'surface_estimee': f"surface estimée de {row['surface']} m²" if row['surface'].strip() else '',
+                'surface_estimee': f"surface estimée de {row['surface']}" if row['surface'].strip() else '',
             }
 
             try:

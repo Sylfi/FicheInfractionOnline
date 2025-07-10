@@ -1,0 +1,6 @@
+flask
+pandas
+docxtpl
+python-docx
+requests
+pillow
