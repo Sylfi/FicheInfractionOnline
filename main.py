@@ -62,25 +62,16 @@ def configure_logging():
 configure_logging()
 
 
-# Nouvelle fonction pour obtenir la date du jour avec gestion de la locale
-def get_date_today(locale_str='fr_FR.UTF-8'):
+# Nouvelle fonction pour obtenir la date du jour formatée à la française (JJ/MM/AAAA)
+def get_date_today():
     """
-    Return the current date formatted as 'day month year' in French locale.
-    Attempts to set the locale to French; logs a warning if unsuccessful.
+    Return the current date formatted as 'JJ/MM/AAAA' (French style).
+    Does not rely on system locale to avoid deployment issues.
     
-    Parameters:
-        locale_str (str): Locale string to set for date formatting.
-        
     Returns:
         str: Formatted current date.
     """
-    try:
-        locale.setlocale(locale.LC_TIME, locale_str)
-    except locale.Error as e:
-        # Log warning if the specified locale is not available on the system
-        logging.warning(f"Impossible de définir la locale '{locale_str}' : {e}")
-    # Return formatted date string like '25 juin 2024'
-    return datetime.now().strftime('%d %B %Y')
+    return datetime.now().strftime('%d/%m/%Y')
 
 # Nouvelle fonction pour initialiser les chemins de dossiers utilisés dans le script
 def init_paths(base_dir):
